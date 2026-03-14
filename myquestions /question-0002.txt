@@ -1,1 +1,15 @@
+Predicción de deserción universitaria
+Problema
 
+Una universidad quiere predecir qué estudiantes podrían desertar. 
+Crear una función que:
+1.Reciba un DataFrame con:
+promedio
+inasistencias
+nivel_socioeconomico
+horas_estudio
+deserta (0 o 1)
+2.Limpie datos faltantes.
+3.Estandarice variables.
+4.Entrene un modelo.
+5.Retorne métricas y variables más importantes.
