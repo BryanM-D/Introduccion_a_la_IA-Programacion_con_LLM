@@ -1,1 +1,37 @@
+Problema Propuesto
 
+Una empresa de monitoreo industrial recopila datos de sensores instalados en maquinaria pesada. Cada registro contiene:
+
+temperatura (°C)
+
+vibracion (mm/s)
+
+presion (kPa)
+
+ruido (dB)
+
+horas_operacion
+
+estado_falla (0 = funcionamiento normal, 1 = posible falla)
+
+Se desea desarrollar una función en Python que:
+
+Reciba un DataFrame con los datos.
+
+Limpie valores atípicos usando técnicas estadísticas.
+
+Estandarice las variables numéricas.
+
+Entrene un modelo de clasificación usando sklearn.
+
+Evalúe el modelo utilizando precisión, recall y matriz de confusión.
+
+Retorne el modelo entrenado y las métricas obtenidas.
+
+La función debe utilizar obligatoriamente:
+
+pandas para manipulación de datos.
+
+numpy para operaciones numéricas.
+
+sklearn para el modelo y métricas.
