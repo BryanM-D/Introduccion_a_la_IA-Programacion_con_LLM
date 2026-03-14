@@ -1,1 +1,16 @@
+Clasificación de eficiencia energética en edificios
+Problema
 
+Se desea clasificar edificios según su eficiencia energética (A, B o C).
+Desarrollar una función que:
+
+1.Reciba un DataFrame con:
+consumo_kwh
+area_m2
+anio_construccion
+aislamiento (0 o 1)
+
+2.categoria_eficiencia (A, B, C)
+3.Codifique la variable objetivo.
+4.Entrene un modelo multiclase.
+5.Evalúe con accuracy y matriz de confusión.
