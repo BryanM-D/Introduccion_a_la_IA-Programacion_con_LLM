@@ -1,37 +1,34 @@
-Problema Propuesto
+Detección de sesgo en un modelo de aprobación de créditos
+Problema
 
-Una empresa de monitoreo industrial recopila datos de sensores instalados en maquinaria pesada. Cada registro contiene:
+Una fintech quiere saber si su modelo de aprobación de créditos está generando sesgo según el género del solicitante.
 
-temperatura (°C)
+Se debe desarrollar una función que:
 
-vibracion (mm/s)
+Reciba un DataFrame con:
 
-presion (kPa)
+edad
 
-ruido (dB)
+ingresos
 
-horas_operacion
+puntaje_credito
 
-estado_falla (0 = funcionamiento normal, 1 = posible falla)
+genero (0 = mujer, 1 = hombre)
 
-Se desea desarrollar una función en Python que:
+aprobado (0 o 1)
 
-Reciba un DataFrame con los datos.
+Entrene un modelo de clasificación.
 
-Limpie valores atípicos usando técnicas estadísticas.
+Calcule métricas separadas por género.
 
-Estandarice las variables numéricas.
+Determine si existe diferencia significativa en la tasa de aprobación.
 
-Entrene un modelo de clasificación usando sklearn.
+Devuelva un reporte con métricas por grupo.
 
-Evalúe el modelo utilizando precisión, recall y matriz de confusión.
+Debe usar:
 
-Retorne el modelo entrenado y las métricas obtenidas.
+pandas
 
-La función debe utilizar obligatoriamente:
+numpy
 
-pandas para manipulación de datos.
-
-numpy para operaciones numéricas.
-
-sklearn para el modelo y métricas.
+sklearn
