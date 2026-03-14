@@ -1,1 +1,16 @@
+Detección de transacciones fraudulentas
+Problema
 
+Una plataforma digital quiere identificar transacciones sospechosas.
+Desarrollar una función que:
+1.Reciba un DataFrame con:
+monto
+hora
+pais
+frecuencia_transacciones
+fraude (0 o 1)
+
+2.Codifique variables categóricas.
+3.Entrene un modelo de clasificación.
+4.Evalúe con matriz de confusión y F1-score.
+5.Detecte desbalance de clases.
