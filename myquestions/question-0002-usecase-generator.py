@@ -1,4 +1,4 @@
-def generar_estudiantes(n=800, seed=42):
+def generar_caso_de_uso_estudiantes(n=800, seed=42):
     np.random.seed(seed)
     
     promedio = np.random.uniform(2.0, 5.0, n)
