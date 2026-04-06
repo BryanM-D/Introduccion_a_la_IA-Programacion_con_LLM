@@ -1,4 +1,4 @@
-def generar_edificios(n=700, seed=42):
+def generar_caso_de_uso_edificios(n=700, seed=42):
     np.random.seed(seed)
     
     consumo = np.random.normal(300, 50, n)
