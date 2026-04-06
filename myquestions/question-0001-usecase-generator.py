@@ -1,6 +1,3 @@
-import numpy as np
-import pandas as pd
-
 def generar_caso_de_uso_creditos(n=1000, seed=42):
     np.random.seed(seed)
     
@@ -12,15 +9,13 @@ def generar_caso_de_uso_creditos(n=1000, seed=42):
     prob = (puntaje/850) + (ingresos/10000)
     aprobado = (prob > 0.9).astype(int)
     
-    df = pd.DataFrame({
+    X = {
         "edad": edad,
         "ingresos": ingresos,
         "puntaje_credito": puntaje,
-        "genero": genero,
-        "aprobado": aprobado
-    })
+        "genero": genero
+    }
     
-    X = df.drop(columns=["aprobado"])
-    y = df["aprobado"]
+    y = aprobado
     
     return X, y
