@@ -20,4 +20,7 @@ def generar_caso_de_uso_creditos(n=1000, seed=42):
         "aprobado": aprobado
     })
     
-    return df
+    X = df.drop(columns=["aprobado"])
+    y = df["aprobado"]
+    
+    return X, y
