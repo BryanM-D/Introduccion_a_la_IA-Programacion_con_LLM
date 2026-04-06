@@ -1,4 +1,4 @@
-def generar_transacciones(n=1500, seed=42):
+def generar_caso_de_uso_transacciones(n=1500, seed=42):
     np.random.seed(seed)
     
     monto = np.random.exponential(200, n)
