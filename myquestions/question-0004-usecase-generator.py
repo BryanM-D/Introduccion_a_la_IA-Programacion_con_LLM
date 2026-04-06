@@ -9,15 +9,13 @@ def generar_caso_de_uso_edificios(n=700, seed=42):
     categoria = np.where(consumo < 250, "A",
                  np.where(consumo < 320, "B", "C"))
     
-    df = pd.DataFrame({
+    X = {
         "consumo_kwh": consumo,
         "area_m2": area,
         "anio_construccion": anio,
-        "aislamiento": aislamiento,
-        "categoria_eficiencia": categoria
-    })
+        "aislamiento": aislamiento
+    }
     
-    X = df.drop(columns=["categoria_eficiencia"])
-    y = df["categoria_eficiencia"]
+    y = categoria
     
     return X, y
