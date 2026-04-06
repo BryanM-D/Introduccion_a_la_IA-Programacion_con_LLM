@@ -9,15 +9,13 @@ def generar_caso_de_uso_transacciones(n=1500, seed=42):
     riesgo = (monto > 500).astype(int) + (hora < 5).astype(int)
     fraude = (riesgo > 1).astype(int)
     
-    df = pd.DataFrame({
+    X = {
         "monto": monto,
         "hora": hora,
         "pais": pais,
-        "frecuencia_transacciones": frecuencia,
-        "fraude": fraude
-    })
+        "frecuencia_transacciones": frecuencia
+    }
     
-    X = df.drop(columns=["fraude"])
-    y = df["fraude"]
+    y = fraude
     
     return X, y
