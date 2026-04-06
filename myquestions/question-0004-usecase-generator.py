@@ -17,4 +17,7 @@ def generar_caso_de_uso_edificios(n=700, seed=42):
         "categoria_eficiencia": categoria
     })
     
-    return df
+    X = df.drop(columns=["categoria_eficiencia"])
+    y = df["categoria_eficiencia"]
+    
+    return X, y
