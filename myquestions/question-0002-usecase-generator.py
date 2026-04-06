@@ -7,14 +7,12 @@ def generar_caso_de_uso_estudiantes(n=800, seed=42):
     
     aprobado = ((horas_estudio > 5) & (asistencia > 75)).astype(int)
     
-    df = pd.DataFrame({
+    X = {
         "horas_estudio": horas_estudio,
         "asistencia": asistencia,
-        "edad": edad,
-        "aprobado": aprobado
-    })
+        "edad": edad
+    }
     
-    X = df.drop(columns=["aprobado"])
-    y = df["aprobado"]
+    y = aprobado
     
     return X, y
