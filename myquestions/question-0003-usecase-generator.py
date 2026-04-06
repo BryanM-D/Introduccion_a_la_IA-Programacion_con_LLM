@@ -17,4 +17,7 @@ def generar_caso_de_uso_transacciones(n=1500, seed=42):
         "fraude": fraude
     })
     
-    return df
+    X = df.drop(columns=["fraude"])
+    y = df["fraude"]
+    
+    return X, y
