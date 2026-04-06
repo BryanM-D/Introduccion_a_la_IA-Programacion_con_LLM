@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix, f1_score
 
-def detectar_fraude_transacciones(df):
+def generar_caso_de_uso_transacciones(df):
     
     # -----------------------------
     # 1. Separar variables
