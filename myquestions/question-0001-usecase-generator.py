@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def generar_creditos(n=1000, seed=42):
+def generar_caso_de_uso_creditos(n=1000, seed=42):
     np.random.seed(seed)
     
     edad = np.random.randint(18, 65, n)
