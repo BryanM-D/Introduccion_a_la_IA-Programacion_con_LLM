@@ -6,49 +6,30 @@ def generar_caso_de_uso_transacciones(n=1500, seed=42):
     np.random.seed(seed)
 
     # -----------------------------
-    # 1. Variables simuladas
+    # INPUT DATA
     # -----------------------------
     monto = np.random.exponential(200, n)
     hora = np.random.randint(0, 24, n)
     pais = np.random.randint(0, 5, n)
     frecuencia_transacciones = np.random.poisson(3, n)
 
-    # -----------------------------
-    # 2. Variable objetivo
-    # -----------------------------
-    fraude = ((monto > 500) & (hora < 5)).astype(int)
-
-    # -----------------------------
-    # 3. Features
-    # -----------------------------
-    X = {
+    input_data = pd.DataFrame({
         "monto": monto,
         "hora": hora,
         "pais": pais,
         "frecuencia_transacciones": frecuencia_transacciones
-    }
+    })
 
     # -----------------------------
-    # 4. Target
+    # OUTPUT DATA
     # -----------------------------
-    y = fraude
+    output_data = ((monto > 500) & (hora < 5)).astype(int)
+
+    output_data = pd.DataFrame({
+        "fraude": output_data
+    })
 
     # -----------------------------
-    # 5. DataFrame final
+    # RETORNO
     # -----------------------------
-    df = pd.DataFrame(X)
-    df["fraude"] = y
-
-    # -----------------------------
-    # 6. Mostrar salida esperada
-    # -----------------------------
-    print("Primeras filas del dataset:")
-    print(df.head())
-
-    print("\nCantidad de fraudes:")
-    print(df["fraude"].value_counts())
-
-    # -----------------------------
-    # 7. Retorno
-    # -----------------------------
-    return X, y, df
+    return input_data, output_data
