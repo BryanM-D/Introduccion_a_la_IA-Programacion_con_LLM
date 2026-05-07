@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 def generar_caso_de_uso_transacciones(n=1500, seed=42):
-    
+
     np.random.seed(seed)
-    
+
     # -----------------------------
     # 1. Variables simuladas
     # -----------------------------
@@ -12,14 +12,14 @@ def generar_caso_de_uso_transacciones(n=1500, seed=42):
     hora = np.random.randint(0, 24, n)
     pais = np.random.randint(0, 5, n)
     frecuencia_transacciones = np.random.poisson(3, n)
-    
+
     # -----------------------------
     # 2. Variable objetivo
     # -----------------------------
     fraude = ((monto > 500) & (hora < 5)).astype(int)
-    
+
     # -----------------------------
-    # 3. FEATURES (DEBE SER DICCIONARIO)
+    # 3. Features
     # -----------------------------
     X = {
         "monto": monto,
@@ -27,13 +27,28 @@ def generar_caso_de_uso_transacciones(n=1500, seed=42):
         "pais": pais,
         "frecuencia_transacciones": frecuencia_transacciones
     }
-    
+
     # -----------------------------
-    # 4. TARGET
+    # 4. Target
     # -----------------------------
     y = fraude
-    
+
     # -----------------------------
-    # 5. RETORNO CORRECTO
+    # 5. DataFrame final
     # -----------------------------
-    return X, y
+    df = pd.DataFrame(X)
+    df["fraude"] = y
+
+    # -----------------------------
+    # 6. Mostrar salida esperada
+    # -----------------------------
+    print("Primeras filas del dataset:")
+    print(df.head())
+
+    print("\nCantidad de fraudes:")
+    print(df["fraude"].value_counts())
+
+    # -----------------------------
+    # 7. Retorno
+    # -----------------------------
+    return X, y, df
