@@ -1,9 +1,16 @@
-
-
 import pandas as pd
 import numpy as np
+import warnings
+
 from scipy.stats import ks_2samp
 
+# ======================================================
+# IGNORAR WARNINGS
+# ======================================================
+warnings.filterwarnings(
+    "ignore",
+    category=RuntimeWarning
+)
 
 # ======================================================
 # FUNCIÓN SOLUCIÓN
@@ -171,4 +178,4 @@ if __name__ == "__main__":
 
     # Validación
     print("\n¿Coinciden?")
-    print(resultado == salida_espe
+    print(resultado == salida_esperada)
