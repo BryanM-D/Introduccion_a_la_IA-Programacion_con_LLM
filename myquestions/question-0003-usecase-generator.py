@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, f1_score
@@ -8,14 +9,30 @@ from sklearn.model_selection import train_test_split
 
 def generar_caso_de_uso_transacciones(n=1500, seed=42):
 
+    # =========================================================
+    # Generación de datos sintéticos
+    # =========================================================
     np.random.seed(seed)
 
     monto = np.random.exponential(200, n)
     hora = np.random.randint(0, 24, n)
-    pais = np.random.choice(['CO', 'US', 'MX', 'BR', 'AR'], n)
-    frecuencia_transacciones = np.random.poisson(3, n)
-    fraude = ((monto > 500) & (hora < 5)).astype(int)
 
+    pais = np.random.choice(
+        ['CO', 'US', 'MX', 'BR', 'AR'],
+        n
+    )
+
+    frecuencia_transacciones = np.random.poisson(3, n)
+
+    # Regla simple de fraude
+    fraude = (
+        (monto > 500) &
+        (hora < 5)
+    ).astype(int)
+
+    # =========================================================
+    # DataFrame original
+    # =========================================================
     df = pd.DataFrame({
         "monto": monto,
         "hora": hora,
@@ -24,46 +41,114 @@ def generar_caso_de_uso_transacciones(n=1500, seed=42):
         "fraude": fraude
     })
 
-    input_dict = {'df': df.copy()}
+    # =========================================================
+    # Primer output: diccionario serializable
+    # =========================================================
+    input_dict = {
+        'df': df.copy().to_dict(orient='records')
+    }
 
+    # =========================================================
+    # Preprocesamiento
+    # =========================================================
     le = LabelEncoder()
+
     df['pais'] = le.fit_transform(df['pais'])
 
-    features = ['monto', 'hora', 'frecuencia_transacciones', 'pais']
+    features = [
+        'monto',
+        'hora',
+        'frecuencia_transacciones',
+        'pais'
+    ]
+
     X = df[features].values
     y = df['fraude'].values
 
+    # =========================================================
+    # Análisis de desbalance
+    # =========================================================
     n_legit = int((y == 0).sum())
     n_fraud = int((y == 1).sum())
-    ratio   = round(n_fraud / n_legit, 4) if n_legit > 0 else float('inf')
 
+    ratio = (
+        round(n_fraud / n_legit, 4)
+        if n_legit > 0 else float('inf')
+    )
+
+    # =========================================================
+    # División train/test
+    # =========================================================
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.25, random_state=42, stratify=y
+        X,
+        y,
+        test_size=0.25,
+        random_state=42,
+        stratify=y
     )
 
+    # =========================================================
+    # Modelo
+    # =========================================================
     modelo = RandomForestClassifier(
-        n_estimators=200, class_weight='balanced',
-        random_state=42, n_jobs=-1
+        n_estimators=200,
+        class_weight='balanced',
+        random_state=42,
+        n_jobs=-1
     )
+
     modelo.fit(X_train, y_train)
 
+    # =========================================================
+    # Predicciones
+    # =========================================================
     preds = modelo.predict(X_test)
-    cm    = confusion_matrix(y_test, preds)
-    f1    = round(f1_score(y_test, preds, zero_division=0), 4)
-    f1_w  = round(f1_score(y_test, preds, average='weighted', zero_division=0), 4)
 
+    # =========================================================
+    # Métricas
+    # =========================================================
+    cm = confusion_matrix(y_test, preds)
+
+    f1 = round(
+        f1_score(y_test, preds, zero_division=0),
+        4
+    )
+
+    f1_w = round(
+        f1_score(
+            y_test,
+            preds,
+            average='weighted',
+            zero_division=0
+        ),
+        4
+    )
+
+    # =========================================================
+    # Segundo output
+    # =========================================================
     output = {
-        'modelo':           modelo,
-        'confusion_matrix': cm,
-        'f1':               f1,
-        'f1_weighted':      f1_w,
+
+        'modelo': str(modelo),
+
+        'confusion_matrix': cm.tolist(),
+
+        'f1': f1,
+
+        'f1_weighted': f1_w,
+
         'desbalance': {
-            'legítimas':             n_legit,
-            'fraudulentas':          n_fraud,
+
+            'legítimas': n_legit,
+
+            'fraudulentas': n_fraud,
+
             'ratio_fraude/legítima': ratio,
-            'desbalanceado':         ratio < 0.2
+
+            'desbalanceado': ratio < 0.2
         },
-        'predicciones': preds
+
+        'predicciones': preds.tolist()
     }
 
     return input_dict, output
