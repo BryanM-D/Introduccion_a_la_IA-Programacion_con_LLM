@@ -1,0 +1,91 @@
+Realizando una validación de los soluciones dadas, obtuve este resultado:
+
+[LOG] 0029: filepath answer-0029.py -> generator: https://raw.githubusercontent.com/calle-sa/Programaci-n_con_LLMs/main/myquestions/question-0001-usecase-generator.py
+[RESULT] 0029:  ✓ output matches
+[LOG] 0306: filepath answer-0306.py -> generator: https://raw.githubusercontent.com/juanramirez50-beep/Programacion-con-LLMs-Juan-Ramirez/main/myquestions/question-0002-usecase-generator.py
+[RESULT] 0306:  ✗ usecase generator error: Execution error: name 'random' is not defined
+[LOG] 0481: filepath answer-0481.py -> generator: https://raw.githubusercontent.com/ClarkMestra1109/fase1-programacion-llms/main/myquestions/question-0001-usecase-generator.py
+--- INPUT: DATAFRAME ENTRENAMIENTO ---
+   ventas  clientes  temperatura
+0   88.36     12.37        70.02
+1   73.84     77.53        11.84
+2   47.47     28.70        26.41
+3   81.06     83.59        32.10
+4   79.17     85.08        92.00
+5   80.39     12.32        39.87
+6   11.23     22.81        36.59
+
+--- INPUT: DATAFRAME ACTUAL ---
+   ventas  clientes  temperatura
+0   88.37    512.37        68.74
+1   75.54    577.53        10.49
+2   51.62    528.70        25.00
+3   81.84    583.59        32.19
+4   79.08    585.08        91.30
+5   80.74    512.32        38.89
+6   13.78    522.81        36.21
+
+Alpha: 0.05
+
+--- OUTPUT ESPERADO (Columnas con Drift) ---
+['clientes']
+[RESULT] 0481:  ✓ output matches
+[LOG] 0669: filepath answer-0669.py -> generator: https://raw.githubusercontent.com/alejandroosorio7-cloud/ml-usecases-python/main/myquestions/question-0001-usecase-generator.py
+[RESULT] 0669:  ✓ output matches
+
+-------
+total answers checked:    4.
+usecase generator errors: 1 question_ids:['0306']
+answers with run errors:  0 question_ids:[]
+answers correct:          3 question_ids:['0029', '0481', '0669']
+answers incorrect:        0 question_ids:[]
+
+
+Con esto tenemos un error en el caso de uso de la question 306, intentamos comunicarnos con el compañero no fue posible adjuntamos fotos de chat y correos, lo que logramos evidenciar es que el error ocurre porque el generador usa random, numpy y pandas, pero no los importa dentro del archivo o dentro de la función.
+
+Su generador esta asi:
+
+def generar_caso_de_uso_evaluar_lotes():
+    """
+    Genera un caso de prueba aleatorio (input / output esperado)
+    para la función evaluar_lotes.
+    """
+    n_lotes  = random.randint(8, 20)
+    n_tests  = random.randint(3, 7)
+    id_col   = "lote_id"
+ 
+    test_cols = [f"test_{chr(65 + i)}" for i in range(n_tests)]
+    data = np.random.uniform(50, 150, size=(n_lotes, n_tests)).astype(float)
+ 
+    # Introduce algunos NaN (~15 %)
+    mask = np.random.choice([True, False], size=data.shape, p=[0.15, 0.85])
+    data[mask] = np.nan
+ 
+    df = pd.DataFrame(data, columns=test_cols)
+    df.insert(0, id_col, [f"LOT-{1000 + i}" for i in range(n_lotes)])
+ 
+    # ── Ground Truth ──────────────────────────────────────────────
+    medianas = df[test_cols].median()          # mediana por test
+    umbral   = medianas.mean()                 # mediana global promedio
+ 
+    promedios = df[test_cols].mean(axis=1)     # promedio fila (ignora NaN)
+ 
+    output_df = pd.DataFrame({
+        id_col:         df[id_col],
+        "promedio_lote": promedios.round(4),
+        "aprueba":       promedios > umbral,
+    }).reset_index(drop=True)
+ 
+    input_data  = {"df": df.copy(), "id_col": id_col}
+    output_data = output_df
+ 
+    return input_data, output_data
+if __name__ == "__main__":
+    print("\n" + "=" * 70)
+    print("PREGUNTA 2 — evaluar_lotes  (pandas)")
+    entrada, salida = generar_caso_de_uso_evaluar_lotes()
+    print(f"INPUT — id_col='{entrada['id_col']}', DataFrame shape: {entrada['df'].shape}")
+    print("OUTPUT esperado (primeras 5 filas):")
+    print(salida.head())
+
+Le falta importarlo que usa en el código.
