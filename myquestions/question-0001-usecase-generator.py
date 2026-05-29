@@ -2,17 +2,14 @@ import numpy as np
 import pandas as pd
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, f1_score
+from sklearn.metrics import confusion_matrix, f1_score, accuracy_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 
-
-def generar_caso_de_uso_creditos(n=1000, seed=42):
+def generar_caso_de_uso_detectar_sesgo_creditos(n=1000):
 
     # =========================================================
     # Generación de datos sintéticos
     # =========================================================
-    np.random.seed(seed)
-
     edad = np.random.randint(18, 65, n)
 
     ingresos = np.random.normal(
@@ -55,14 +52,14 @@ def generar_caso_de_uso_creditos(n=1000, seed=42):
     })
 
     # =========================================================
-    # Primer output: diccionario serializable
+    # Primer output: diccionario serializable (input para la función del usuario)
     # =========================================================
     input_dict = {
         'df': df.copy().to_dict(orient='records')
     }
 
     # =========================================================
-    # Features y target
+    # Features y target para el entrenamiento del modelo del generador
     # =========================================================
     features = [
         'edad',
@@ -76,7 +73,7 @@ def generar_caso_de_uso_creditos(n=1000, seed=42):
     y = df['aprobado'].values
 
     # =========================================================
-    # Análisis de balance
+    # Análisis de balance (solo para información interna del generador, no en el output esperado)
     # =========================================================
     n_no_aprobados = int((y == 0).sum())
 
@@ -88,7 +85,7 @@ def generar_caso_de_uso_creditos(n=1000, seed=42):
     )
 
     # =========================================================
-    # División train/test
+    # División train/test (igual que en la función del usuario)
     # =========================================================
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -99,7 +96,7 @@ def generar_caso_de_uso_creditos(n=1000, seed=42):
     )
 
     # =========================================================
-    # Modelo
+    # Modelo (igual que en la función del usuario)
     # =========================================================
     modelo = RandomForestClassifier(
         n_estimators=200,
@@ -116,57 +113,57 @@ def generar_caso_de_uso_creditos(n=1000, seed=42):
     preds = modelo.predict(X_test)
 
     # =========================================================
-    # Métricas
+    # Calcular el output esperado (reporte)
     # =========================================================
-    cm = confusion_matrix(
-        y_test,
-        preds
-    )
+    # Re-crear X_test como un DataFrame para facilitar el acceso a 'genero'
+    X_test_df = pd.DataFrame(X_test, columns=features)
 
-    f1 = round(
-        f1_score(
-            y_test,
-            preds,
-            zero_division=0
-        ),
-        4
-    )
+    test_results_df = pd.DataFrame({
+        'genero': X_test_df['genero'].astype(int).values,
+        'aprobado_real': y_test,
+        'prediccion_aprobado': preds
+    })
 
-    f1_w = round(
-        f1_score(
-            y_test,
-            preds,
-            average='weighted',
-            zero_division=0
-        ),
-        4
-    )
+    output_esperado = {}
+    generos = test_results_df['genero'].unique()
+    generos.sort()
 
-    # =========================================================
-    # Segundo output
-    # =========================================================
-    output = {
+    for g in generos:
+        subset = test_results_df[test_results_df['genero'] == g]
+        actual_aprobado = subset['aprobado_real']
+        prediccion_aprobado = subset['prediccion_aprobado']
 
-        'modelo': str(modelo),
+        n_solicitantes = len(subset)
+        tasa_aprobacion_real = actual_aprobado.mean()
+        tasa_aprobacion_predicha = prediccion_aprobado.mean()
+        accuracy = accuracy_score(actual_aprobado, prediccion_aprobado)
+        precision = precision_score(actual_aprobado, prediccion_aprobado, zero_division=0)
+        recall = recall_score(actual_aprobado, prediccion_aprobado, zero_division=0)
+        f1 = f1_score(actual_aprobado, prediccion_aprobado, zero_division=0)
 
-        'confusion_matrix': cm.tolist(),
+        output_esperado[f'genero_{g}'] = {
+            'n_solicitantes': n_solicitantes,
+            'tasa_aprobacion_real': tasa_aprobacion_real,
+            'tasa_aprobacion_predicha': tasa_aprobacion_predicha,
+            'accuracy': accuracy,
+            'precision': precision,
+            'recall': recall,
+            'f1_score': f1
+        }
 
-        'f1': f1,
+    if len(generos) == 2:
+        g0_actual_rate = output_esperado[f'genero_{generos[0]}']['tasa_aprobacion_real']
+        g1_actual_rate = output_esperado[f'genero_{generos[1]}']['tasa_aprobacion_real']
+        diff_actual = abs(g0_actual_rate - g1_actual_rate)
 
-        'f1_weighted': f1_w,
+        g0_pred_rate = output_esperado[f'genero_{generos[0]}']['tasa_aprobacion_predicha']
+        g1_pred_rate = output_esperado[f'genero_{generos[1]}']['tasa_aprobacion_predicha']
+        diff_pred = abs(g0_pred_rate - g1_pred_rate)
 
-        'balance': {
+        output_esperado['diferencia_tasa_aprobacion_real'] = diff_actual
+        output_esperado['diferencia_tasa_aprobacion_predicha'] = diff_pred
+        # Usando un umbral de 0.05 como en la descripción del problema
+        output_esperado['sesgo_detectado_real'] = diff_actual > 0.05
+        output_esperado['sesgo_detectado_predicho'] = diff_pred > 0.05
 
-            'no_aprobados': n_no_aprobados,
-
-            'aprobados': n_aprobados,
-
-            'ratio_aprobados/no_aprobados': ratio,
-
-            'desbalanceado': ratio < 0.2
-        },
-
-        'predicciones': preds.tolist()
-    }
-
-    return input_dict, output
+    return input_dict, output_esperado
