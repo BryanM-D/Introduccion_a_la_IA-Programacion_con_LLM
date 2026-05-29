@@ -2,15 +2,33 @@ import numpy as np
 import pandas as pd
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix, f1_score, accuracy_score, precision_score, recall_score
+from sklearn.metrics import (
+    f1_score,
+    accuracy_score,
+    precision_score,
+    recall_score
+)
 from sklearn.model_selection import train_test_split
 
-def generar_caso_de_uso_detectar_sesgo_creditos(n=1000):
+
+def generar_caso_de_uso_detectar_sesgo_creditos(
+    n=1000,
+    seed=42
+):
+
+    # =========================================================
+    # Semilla para reproducibilidad
+    # =========================================================
+    np.random.seed(seed)
 
     # =========================================================
     # Generación de datos sintéticos
     # =========================================================
-    edad = np.random.randint(18, 65, n)
+    edad = np.random.randint(
+        18,
+        65,
+        n
+    )
 
     ingresos = np.random.normal(
         3000,
@@ -31,14 +49,16 @@ def generar_caso_de_uso_detectar_sesgo_creditos(n=1000):
     )  # 0 mujer, 1 hombre
 
     # =========================================================
-    # Regla simple de aprobación
+    # Regla de aprobación
     # =========================================================
     prob = (
         (puntaje_credito / 850) +
         (ingresos / 10000)
     )
 
-    aprobado = (prob > 0.9).astype(int)
+    aprobado = (
+        prob > 0.9
+    ).astype(int)
 
     # =========================================================
     # DataFrame original
@@ -52,14 +72,16 @@ def generar_caso_de_uso_detectar_sesgo_creditos(n=1000):
     })
 
     # =========================================================
-    # Primer output: diccionario serializable (input para la función del usuario)
+    # Input serializable
     # =========================================================
     input_dict = {
-        'df': df.copy().to_dict(orient='records')
+        'df': df.to_dict(
+            orient='records'
+        )
     }
 
     # =========================================================
-    # Features y target para el entrenamiento del modelo del generador
+    # Features y target
     # =========================================================
     features = [
         'edad',
@@ -73,19 +95,7 @@ def generar_caso_de_uso_detectar_sesgo_creditos(n=1000):
     y = df['aprobado'].values
 
     # =========================================================
-    # Análisis de balance (solo para información interna del generador, no en el output esperado)
-    # =========================================================
-    n_no_aprobados = int((y == 0).sum())
-
-    n_aprobados = int((y == 1).sum())
-
-    ratio = (
-        round(n_aprobados / n_no_aprobados, 4)
-        if n_no_aprobados > 0 else float('inf')
-    )
-
-    # =========================================================
-    # División train/test (igual que en la función del usuario)
+    # División train/test
     # =========================================================
     X_train, X_test, y_train, y_test = train_test_split(
         X,
@@ -96,7 +106,7 @@ def generar_caso_de_uso_detectar_sesgo_creditos(n=1000):
     )
 
     # =========================================================
-    # Modelo (igual que en la función del usuario)
+    # Modelo
     # =========================================================
     modelo = RandomForestClassifier(
         n_estimators=200,
@@ -105,7 +115,10 @@ def generar_caso_de_uso_detectar_sesgo_creditos(n=1000):
         n_jobs=-1
     )
 
-    modelo.fit(X_train, y_train)
+    modelo.fit(
+        X_train,
+        y_train
+    )
 
     # =========================================================
     # Predicciones
@@ -113,57 +126,149 @@ def generar_caso_de_uso_detectar_sesgo_creditos(n=1000):
     preds = modelo.predict(X_test)
 
     # =========================================================
-    # Calcular el output esperado (reporte)
+    # DataFrame resultados
     # =========================================================
-    # Re-crear X_test como un DataFrame para facilitar el acceso a 'genero'
-    X_test_df = pd.DataFrame(X_test, columns=features)
+    X_test_df = pd.DataFrame(
+        X_test,
+        columns=features
+    )
 
-    test_results_df = pd.DataFrame({
-        'genero': X_test_df['genero'].astype(int).values,
+    resultados = pd.DataFrame({
+        'genero': X_test_df['genero'].astype(int),
         'aprobado_real': y_test,
         'prediccion_aprobado': preds
     })
 
+    # =========================================================
+    # Output esperado
+    # =========================================================
     output_esperado = {}
-    generos = test_results_df['genero'].unique()
-    generos.sort()
+
+    generos = sorted(
+        resultados['genero'].unique()
+    )
 
     for g in generos:
-        subset = test_results_df[test_results_df['genero'] == g]
-        actual_aprobado = subset['aprobado_real']
-        prediccion_aprobado = subset['prediccion_aprobado']
 
-        n_solicitantes = len(subset)
-        tasa_aprobacion_real = actual_aprobado.mean()
-        tasa_aprobacion_predicha = prediccion_aprobado.mean()
-        accuracy = accuracy_score(actual_aprobado, prediccion_aprobado)
-        precision = precision_score(actual_aprobado, prediccion_aprobado, zero_division=0)
-        recall = recall_score(actual_aprobado, prediccion_aprobado, zero_division=0)
-        f1 = f1_score(actual_aprobado, prediccion_aprobado, zero_division=0)
+        subset = resultados[
+            resultados['genero'] == g
+        ]
 
-        output_esperado[f'genero_{g}'] = {
-            'n_solicitantes': n_solicitantes,
-            'tasa_aprobacion_real': tasa_aprobacion_real,
-            'tasa_aprobacion_predicha': tasa_aprobacion_predicha,
-            'accuracy': accuracy,
-            'precision': precision,
-            'recall': recall,
-            'f1_score': f1
+        y_real = subset[
+            'aprobado_real'
+        ]
+
+        y_pred = subset[
+            'prediccion_aprobado'
+        ]
+
+        output_esperado[
+            f'genero_{g}'
+        ] = {
+
+            'n_solicitantes':
+                int(len(subset)),
+
+            'tasa_aprobacion_real':
+                float(y_real.mean()),
+
+            'tasa_aprobacion_predicha':
+                float(y_pred.mean()),
+
+            'accuracy':
+                float(
+                    accuracy_score(
+                        y_real,
+                        y_pred
+                    )
+                ),
+
+            'precision':
+                float(
+                    precision_score(
+                        y_real,
+                        y_pred,
+                        zero_division=0
+                    )
+                ),
+
+            'recall':
+                float(
+                    recall_score(
+                        y_real,
+                        y_pred,
+                        zero_division=0
+                    )
+                ),
+
+            'f1_score':
+                float(
+                    f1_score(
+                        y_real,
+                        y_pred,
+                        zero_division=0
+                    )
+                )
         }
 
+    # =========================================================
+    # Comparación entre géneros
+    # =========================================================
     if len(generos) == 2:
-        g0_actual_rate = output_esperado[f'genero_{generos[0]}']['tasa_aprobacion_real']
-        g1_actual_rate = output_esperado[f'genero_{generos[1]}']['tasa_aprobacion_real']
-        diff_actual = abs(g0_actual_rate - g1_actual_rate)
 
-        g0_pred_rate = output_esperado[f'genero_{generos[0]}']['tasa_aprobacion_predicha']
-        g1_pred_rate = output_esperado[f'genero_{generos[1]}']['tasa_aprobacion_predicha']
-        diff_pred = abs(g0_pred_rate - g1_pred_rate)
+        g0_real = output_esperado[
+            f'genero_{generos[0]}'
+        ][
+            'tasa_aprobacion_real'
+        ]
 
-        output_esperado['diferencia_tasa_aprobacion_real'] = diff_actual
-        output_esperado['diferencia_tasa_aprobacion_predicha'] = diff_pred
-        # Usando un umbral de 0.05 como en la descripción del problema
-        output_esperado['sesgo_detectado_real'] = diff_actual > 0.05
-        output_esperado['sesgo_detectado_predicho'] = diff_pred > 0.05
+        g1_real = output_esperado[
+            f'genero_{generos[1]}'
+        ][
+            'tasa_aprobacion_real'
+        ]
 
-    return input_dict, output_esperado
+        diff_real = abs(
+            g0_real - g1_real
+        )
+
+        g0_pred = output_esperado[
+            f'genero_{generos[0]}'
+        ][
+            'tasa_aprobacion_predicha'
+        ]
+
+        g1_pred = output_esperado[
+            f'genero_{generos[1]}'
+        ][
+            'tasa_aprobacion_predicha'
+        ]
+
+        diff_pred = abs(
+            g0_pred - g1_pred
+        )
+
+        output_esperado[
+            'diferencia_tasa_aprobacion_real'
+        ] = float(diff_real)
+
+        output_esperado[
+            'diferencia_tasa_aprobacion_predicha'
+        ] = float(diff_pred)
+
+        output_esperado[
+            'sesgo_detectado_real'
+        ] = bool(
+            diff_real > 0.05
+        )
+
+        output_esperado[
+            'sesgo_detectado_predicho'
+        ] = bool(
+            diff_pred > 0.05
+        )
+
+    return (
+        input_dict,
+        output_esperado
+    )
